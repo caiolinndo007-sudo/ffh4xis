@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2b0509">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<title>FFxis Auxílio</title>
+<style>
+/* Layout: tela de entrada com key, depois app com duas abas fixas (Menu, Usuário). Escuro com roxo e magenta, tema único por escolha. */
+:root{--bg:#2b0509;--card:#3d0a11;--card2:#4c101a;--line:#7a1d2b;--txt:#fff1f2;--mut:#e0a3ab;--acc:#ff2d3d;--acc2:#ff7a3d;--ok:#3ddc84;--warn:#ffd23f;--bad:#ffb347;--ico:#5e1722;--navbg:rgba(32,5,9,.96);color-scheme:dark}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{background:radial-gradient(900px 480px at 50% -120px,#c4172a,transparent),var(--bg);background-color:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;font-size:14px;min-height:100vh;padding-block:0 96px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+body.gated{padding-block:0}
+h1{margin:0;font-size:24px;letter-spacing:2px;text-transform:uppercase;font-weight:900;text-wrap:balance}
+h1 span{color:var(--acc2)}
+.wrap{max-width:560px;margin:auto}
+header{padding:18px 0 6px}
+main{padding-block:12px}
+.tab{display:none}.tab.on{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
+.card h2{margin:0 0 12px;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:var(--acc2)}
+.note{color:var(--mut);font-size:12px;margin-top:6px}
+label{display:block;font-weight:700;font-size:13px;margin:0 0 8px}
+input{width:100%;background:var(--card2);border:1px solid var(--line);color:var(--txt);border-radius:12px;padding:14px;font-size:16px;margin-bottom:16px;font-family:inherit}
+input:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(255,45,61,.3);outline:none}
+button{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;border:0;border-radius:12px;padding:14px 16px;font-size:15px;font-weight:800;letter-spacing:.5px;width:100%;cursor:pointer;font-family:inherit}
+button:focus-visible{outline:2px solid var(--warn);outline-offset:2px}
+button:active{transform:scale(.97)}
+button.ghost{background:var(--card2);border:1px solid var(--line);color:var(--txt)}
+
+/* entrada */
+#gate{min-height:100vh;display:flex;align-items:center;justify-content:center;padding-block:24px}
+.gcard{width:100%;max-width:420px;background:var(--card);border:1px solid var(--acc);border-radius:20px;padding:26px 22px;box-shadow:0 0 36px rgba(255,45,61,.28)}
+.logo{width:112px;height:112px;margin:0 auto 14px;display:block;border-radius:50%;object-fit:cover;border:4px solid var(--acc);box-shadow:0 0 22px rgba(255,45,61,.35)}
+.gcard h1{text-align:center;font-size:26px}
+.gsub{text-align:center;color:var(--mut);margin:8px 0 22px;font-size:13px}
+.pw{position:relative}
+.pw input{padding-right:84px}
+.pw .eye{position:absolute;right:8px;top:7px;width:auto;padding:7px 12px;font-size:12px;background:var(--ico);border:1px solid var(--line);color:var(--txt)}
+.err{background:rgba(255,93,115,.12);border:1px solid var(--bad);border-radius:10px;padding:10px 12px;margin:-4px 0 14px;font-size:13px}
+.gfoot{text-align:center;color:var(--mut);font-size:12px;margin-top:16px}
+
+/* app */
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;gap:4px;background:var(--navbg);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:6px max(6px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 6px) max(6px,env(safe-area-inset-left,0px))}
+nav button{background:none;color:var(--mut);border-radius:12px;font-size:11px;padding:8px 4px;letter-spacing:1px;text-transform:uppercase}
+nav button span{display:block;font-size:20px;margin-bottom:2px}
+nav button.on{color:var(--acc2);background:rgba(255,45,61,.16)}
+.fx{display:flex;align-items:center;gap:12px;background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+.fx .fi{width:48px;height:48px;flex:none;border-radius:12px;display:grid;place-items:center;font-size:24px;background:var(--ico);border:1px solid var(--line)}
+.fx .fb{flex:1;min-width:0}
+.fx b{font-size:17px}
+.fx small{color:var(--mut);display:block;font-size:12px;margin-top:2px}
+.st{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:11px;letter-spacing:1px;font-weight:700;color:var(--mut)}
+.st i{width:8px;height:8px;border-radius:50%;background:var(--mut)}
+.fx.loading .st{color:var(--warn)}.fx.loading .st i{background:var(--warn)}
+.fx.on-fx .st{color:var(--ok)}.fx.on-fx .st i{background:var(--ok)}
+.fx button{width:auto;min-width:104px;padding:11px 14px}
+.bar{height:5px;background:var(--ico);border-radius:9px;margin-top:8px;overflow:hidden;display:none}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--acc2))}
+.fx.loading .bar{display:block}
+.fx.on-fx{border-color:var(--ok);box-shadow:0 0 18px rgba(61,220,132,.15)}
+.fx.on-fx button{background:linear-gradient(135deg,var(--ok),#1fa55c)}
+#log{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;color:var(--ok);min-height:90px;max-height:200px;overflow:auto;white-space:pre-wrap}
+#bg{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+#gate,#app{position:relative;z-index:1}
+nav{z-index:5}
+nav button svg{display:block;margin:0 auto 3px}
+.fx .fi svg{width:24px;height:24px;stroke:var(--acc2);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.fovrow{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:10px}
+.fovrow span{color:var(--mut)}
+.fovrow b{font-size:26px;font-variant-numeric:tabular-nums;color:var(--acc2)}
+input[type=range]{padding:0;height:30px;margin:0;background:none;border:0;accent-color:var(--acc2);cursor:pointer}
+input[type=range]:focus{box-shadow:none}
+#fovCircle{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:50%;border:2px solid var(--warn);background:rgba(255,210,63,.07);box-shadow:0 0 22px rgba(255,210,63,.35);pointer-events:none;z-index:3;transition:width .1s,height .1s}
+.brand{font-size:32px;font-style:italic;letter-spacing:1px;text-shadow:0 0 14px rgba(255,255,255,.35)}
+.brand span{color:var(--acc);text-shadow:0 0 16px var(--acc)}
+.user{text-align:center;padding-block:28px}
+.avatar{width:84px;height:84px;margin:0 auto 14px;border-radius:50%;display:grid;place-items:center;font-size:36px;font-weight:900;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;text-transform:uppercase}
+.uname{font-size:26px;font-weight:900;overflow-wrap:anywhere}
+.user button{margin-top:18px;width:auto}
+@media (prefers-reduced-motion:reduce){button:active{transform:none}}
+</style>
+</head>
+<body>
+
+<canvas id="bg" aria-hidden="true"></canvas>
+
+<!-- tela de entrada -->
+<section id="gate">
+  <form class="gcard" id="gateForm" autocomplete="off">
+    <img class="logo" src="logo.jpg" alt="Foto do usuário">
+    <h1>FFxis <span>Auxílio</span></h1>
+    <div class="gsub">Entre com sua KEY para acessar o menu</div>
+    <label for="gName">Nome de usuário</label>
+    <input id="gName" placeholder="Digite seu nome" maxlength="24" autocapitalize="words">
+    <label for="gKey">Key de acesso</label>
+    <div class="pw">
+      <input id="gKey" type="password" placeholder="Digite sua KEY de acesso" autocapitalize="none" spellcheck="false">
+      <button type="button" class="eye" id="eye">Mostrar</button>
+    </div>
+    <div class="err" id="gErr" hidden></div>
+    <button type="submit">Acessar menu</button>
+    <div class="gfoot">Projeto ffh4x</div>
+  </form>
+</section>
+
+<!-- app -->
+<div id="app" hidden>
+<div class="wrap">
+<header><h1 class="brand">FFH4<span>X</span>IS</h1></header>
+<main>
+
+<section id="menu" class="tab on">
+  <div class="card">
+    <h2>Menu de funções</h2>
+    <div id="fx"></div>
+    <div class="note">Projeto ffh4x</div>
+  </div>
+  <div class="card">
+    <h2>FOV</h2>
+    <div class="fovrow"><span>Campo de visão</span><b id="fovVal">0%</b></div>
+    <input type="range" id="fov" min="0" max="100" value="0" step="1" aria-label="FOV de 0 a 100 por cento">
+  </div>
+  <div class="card">
+    <h2>Console</h2>
+    <div id="log">&gt; aguardando comando...</div>
+  </div>
+</section>
+
+<section id="config" class="tab">
+  <div class="card">
+    <h2>Config</h2>
+    <div id="cfgList"></div>
+    <div class="note">Projeto ffh4x</div>
+  </div>
+</section>
+
+<section id="usuario" class="tab">
+  <div class="card user">
+    <div class="avatar" id="avatar"></div>
+    <div class="uname" id="uname"></div>
+    <button class="ghost" id="logout">Sair</button>
+  </div>
+</section>
+
+</main>
+</div>
+
+<div id="fovCircle" hidden></div>
+
+<nav>
+  <button class="on" data-tab="menu"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Menu</button>
+  <button data-tab="config"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>Config</button>
+  <button data-tab="usuario"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>Usuário</button>
+</nav>
+</div>
+
+<script>
+const ACCESS_KEY='ffh4x';
+const NAME_KEY='arena-squad-nome';
+const $=s=>document.querySelector(s);
+let user='';
+try{$('#gName').value=localStorage.getItem(NAME_KEY)||''}catch(e){}
+
+/* ---------- entrada ---------- */
+const showErr=t=>{const e=$('#gErr');e.textContent=t;e.hidden=false};
+$('#eye').onclick=()=>{const k=$('#gKey'),show=k.type==='password';k.type=show?'text':'password';$('#eye').textContent=show?'Ocultar':'Mostrar'};
+$('#gateForm').onsubmit=e=>{
+  e.preventDefault();
+  const n=$('#gName').value.trim(),k=$('#gKey').value.trim().toLowerCase();
+  if(!n){showErr('Digite seu nome de usuário.');return}
+  if(k!==ACCESS_KEY){showErr('Key inválida. Confira e tente de novo.');return}
+  $('#gErr').hidden=true;
+  user=n;try{localStorage.setItem(NAME_KEY,n)}catch(err){}
+  $('#uname').textContent=n;$('#avatar').textContent=n.charAt(0);
+  $('#gate').hidden=true;$('#app').hidden=false;document.body.classList.remove('gated');
+  window.scrollTo(0,0);
+};
+$('#logout').onclick=()=>{
+  $('#gKey').value='';$('#gKey').type='password';$('#eye').textContent='Mostrar';
+  $('#app').hidden=true;$('#gate').hidden=false;document.body.classList.add('gated');
+  document.querySelector('nav button[data-tab="menu"]').click();
+};
+document.body.classList.add('gated');
+
+/* ---------- abas ---------- */
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x===b));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.id===b.dataset.tab));
+  window.scrollTo(0,0);
+});
+
+/* ---------- menu de funções (simulação visual) ---------- */
+const FX=[['aimbot','','Aimbot','Mira automática'],['aimlock','','Aimlock','Trava de mira'],['regedit','','RegEdit','Ajustes de sensibilidade'],['otimizacao','','Otimização','Modo de desempenho'],['recuo','','Controle de Recuo','Ajuste do recuo','c'],['sens','','Ajuste de Sensibilidade','Níveis de sensibilidade','c'],['toque','','Otimização de Toque','Resposta do toque','c'],['estab','','Estabilidade de Mira','Estabilidade da mira','c']];
+const IS='<svg viewBox="0 0 24 24" aria-hidden="true">';
+const ICON={
+ aimbot:IS+'<circle cx="12" cy="12" r="8"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>',
+ aimlock:IS+'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
+ capa:IS+'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg>',
+ regedit:IS+'<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>',
+ otimizacao:IS+'<path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>',
+ recuo:IS+'<path d="M12 4v14M6 12l6 6 6-6"/></svg>',
+ sens:IS+'<path d="M4 17a8 8 0 1 1 16 0"/><path d="M12 17l4-5"/></svg>',
+ toque:IS+'<circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/></svg>',
+ estab:IS+'<path d="M3 12h4l2-5 4 10 2-5h6"/></svg>'
+};
+const fxOn={};
+const logEl=$('#log');
+const say=t=>{logEl.textContent+='\n> '+t;logEl.scrollTop=logEl.scrollHeight};
+function renderFx(){
+  const card=f=>`<div class="fx ${fxOn[f[0]]?'on-fx':''}" id="fx-${f[0]}">
+    <div class="fi">${ICON[f[0]]}</div>
+    <div class="fb"><b>${f[2]}</b><small>${f[3]}</small>
+      <div class="st"><i></i><span>${fxOn[f[0]]?'ATIVO':'INATIVO'}</span></div>
+      <div class="bar"><i></i></div></div>
+    <button data-f="${f[0]}">${fxOn[f[0]]?'Ativado ✓':'Ativar'}</button></div>`;
+  $('#fx').innerHTML=FX.filter(f=>!f[4]).map(card).join('');
+  $('#cfgList').innerHTML=FX.filter(f=>f[4]).map(card).join('');
+  document.querySelectorAll('.fx button').forEach(b=>b.onclick=()=>toggleFx(b.dataset.f));
+}
+function toggleFx(id){
+  const f=FX.find(x=>x[0]===id),box=$('#fx-'+id),btn=box.querySelector('button'),bar=box.querySelector('.bar i'),st=box.querySelector('.st span');
+  if(box.classList.contains('loading'))return;
+  if(fxOn[id]){fxOn[id]=false;say(f[2]+' desativado.');renderFx();return}
+  box.classList.add('loading');btn.textContent='Ativando...';st.textContent='ATIVANDO';
+  say('iniciando '+f[2]+'...');
+  let p=0;const iv=setInterval(()=>{
+    p+=Math.random()*14+6;
+    if(p>=100){p=100;clearInterval(iv);fxOn[id]=true;say(f[2]+' ATIVADO ✓');renderFx();return}
+    bar.style.width=p+'%';
+  },140);
+}
+renderFx();
+
+/* ---------- FOV ---------- */
+const fov=$('#fov'),fovC=$('#fovCircle');
+function drawFov(){
+  const v=+fov.value;
+  $('#fovVal').textContent=v+'%';
+  const d=v/100*Math.min(innerWidth,innerHeight)*0.9;
+  fovC.style.width=fovC.style.height=d+'px';
+  fovC.hidden=v===0;
+}
+let fovT;
+fov.oninput=()=>{drawFov();clearTimeout(fovT);fovT=setTimeout(()=>say('FOV ajustado para '+fov.value+'%'),400)};
+addEventListener('resize',drawFov);
+drawFov();
+
+/* ---------- fundo animado: partículas subindo ---------- */
+(function(){
+  const c=document.getElementById('bg'),x=c.getContext('2d');
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let w,h,dpr,P=[];
+  function size(){dpr=Math.min(devicePixelRatio||1,2);w=innerWidth;h=innerHeight;c.width=w*dpr;c.height=h*dpr;x.setTransform(dpr,0,0,dpr,0,0)}
+  function mk(init){return{x:Math.random()*w,y:init?Math.random()*h:h+10,r:1+Math.random()*3.5,v:.25+Math.random()*.9,s:Math.random()*6.28,a:.25+Math.random()*.5,c:Math.random()<.5?'255,70,60':'255,160,80'}}
+  size();for(let i=0;i<46;i++)P.push(mk(true));
+  addEventListener('resize',size);
+  function tick(){
+    x.clearRect(0,0,w,h);
+    for(const p of P){
+      p.y-=p.v;p.s+=.02;p.x+=Math.sin(p.s)*.4;
+      if(p.y<-10)Object.assign(p,mk(false));
+      const f=Math.max(.15,Math.min(1,p.y/(h*.6)+.2));
+      x.beginPath();x.fillStyle='rgba('+p.c+','+(p.a*f)+')';x.arc(p.x,p.y,p.r,0,6.283);x.fill();
+    }
+    if(!reduce)requestAnimationFrame(tick);
+  }
+  tick();
+})();
+</script>
+<script>if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(function(){});</script>
+</body>
+</html>
